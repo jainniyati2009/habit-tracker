@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-accent="indigo">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Habitly — Daily Habit Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ───── Onboarding Overlay ───── -->
+  <div id="onboarding" class="onboarding" style="display:none">
+    <div class="onboarding__card">
+      <div class="onboarding__step" data-step="0">
+        <div class="onboarding__emoji">🔥</div>
+        <h2>Welcome to Habitly</h2>
+        <p>Build better habits, one day at a time. Track your progress, earn XP, unlock achievements, and watch your streaks grow!</p>
+        <button class="btn btn--primary btn--lg" onclick="nextOnboarding()">Get Started →</button>
+      </div>
+      <div class="onboarding__step" data-step="1" style="display:none">
+        <div class="onboarding__emoji">🎨</div>
+        <h2>Pick Your Theme</h2>
+        <p>Choose a color theme that suits your style.</p>
+        <div class="theme-grid theme-grid--onboarding" id="onboardingThemes"></div>
+        <button class="btn btn--primary btn--lg" onclick="nextOnboarding()">Next →</button>
+      </div>
+      <div class="onboarding__step" data-step="2" style="display:none">
+        <div class="onboarding__emoji">⚡</div>
+        <h2>Quick Start</h2>
+        <p>Add some popular habits to get going, or create your own!</p>
+        <div class="template-grid" id="onboardingTemplates"></div>
+        <button class="btn btn--primary btn--lg" onclick="finishOnboarding()">Start Tracking! 🚀</button>
+      </div>
+      <div class="onboarding__dots">
+        <span class="onboarding__dot active"></span>
+        <span class="onboarding__dot"></span>
+        <span class="onboarding__dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Top Navigation ───── -->
+  <header class="topbar">
+    <div class="topbar__brand">
+      <span class="topbar__logo">🔥</span>
+      <h1 class="topbar__title">Habitly</h1>
+      <div class="topbar__level" id="levelBadge" title="Your level">
+        <span class="topbar__level-icon">⭐</span>
+        <span class="topbar__level-text" id="levelText">Lv 1</span>
+      </div>
+    </div>
+    <nav class="topbar__nav">
+      <button class="tab-btn active" data-view="tracker">📋 Tracker</button>
+      <button class="tab-btn" data-view="stats">📊 Stats</button>
+      <button class="tab-btn" data-view="achievements">🏆 Badges</button>
+      <button class="tab-btn" data-view="settings">⚙️ Settings</button>
+    </nav>
+    <div class="topbar__actions">
+      <div class="topbar__xp" id="xpBar" title="Experience points">
+        <div class="topbar__xp-fill" id="xpFill"></div>
+        <span class="topbar__xp-text" id="xpText">0 XP</span>
+      </div>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode" title="Toggle dark/light">
+        <span class="icon-btn__icon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ───── Main Content ───── -->
+  <main class="app">
+
+    <!-- ====== TRACKER VIEW ====== -->
+    <section id="trackerView" class="view view--active">
+
+      <!-- Motivational Quote Banner -->
+      <div class="quote-banner" id="quoteBanner">
+        <span class="quote-banner__text" id="quoteText"></span>
+        <button class="quote-banner__refresh icon-btn" onclick="refreshQuote()" title="New quote">🔄</button>
+      </div>
+
+      <!-- Today's Progress Ring -->
+      <div class="today-progress">
+        <div class="progress-ring" id="progressRing">
+          <svg viewBox="0 0 120 120" class="progress-ring__svg">
+            <circle class="progress-ring__bg" cx="60" cy="60" r="52" />
+            <circle class="progress-ring__fill" id="progressCircle" cx="60" cy="60" r="52" />
+          </svg>
+          <div class="progress-ring__inner">
+            <span class="progress-ring__pct" id="progressPct">0%</span>
+            <span class="progress-ring__label">Today</span>
+          </div>
+        </div>
+        <div class="today-progress__info">
+          <h2 class="today-progress__greeting" id="greeting"></h2>
+          <p class="today-progress__summary" id="todaySummary"></p>
+        </div>
+      </div>
+
+      <!-- Week Navigation -->
+      <div class="week-nav">
+        <button id="prevWeek" class="icon-btn" aria-label="Previous week">◀</button>
+        <h2 id="weekLabel" class="week-nav__label"></h2>
+        <button id="nextWeek" class="icon-btn" aria-label="Next week">▶</button>
+        <button id="todayBtn" class="btn btn--small btn--ghost">Today</button>
+      </div>
+
+      <!-- Day Selector Bar -->
+      <div id="dayBar" class="day-bar" role="tablist"></div>
+
+      <!-- Search & Filter Bar -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-box__icon">🔍</span>
+          <input type="text" id="searchInput" class="search-box__input" placeholder="Search habits..." />
+        </div>
+        <div class="filter-chips" id="filterChips">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="health">💪 Health</button>
+          <button class="filter-chip" data-filter="mind">🧠 Mind</button>
+          <button class="filter-chip" data-filter="productivity">⚡ Productivity</button>
+          <button class="filter-chip" data-filter="social">🤝 Social</button>
+          <button class="filter-chip" data-filter="creative">🎨 Creative</button>
+          <button class="filter-chip" data-filter="other">📌 Other</button>
+        </div>
+        <select id="sortSelect" class="sort-select">
+          <option value="custom">Sort: Custom</option>
+          <option value="name">Sort: Name</option>
+          <option value="streak">Sort: Streak ↓</option>
+          <option value="completion">Sort: Completion ↓</option>
+          <option value="priority">Sort: Priority ↑</option>
+        </select>
+      </div>
+
+      <!-- Habit List -->
+      <div id="habitList" class="habit-list"></div>
+
+      <!-- Add Habit Button -->
+      <button id="addHabitBtn" class="fab" aria-label="Add new habit" title="Add habit (N)">
+        <span>+</span>
+      </button>
+    </section>
+
+    <!-- ====== STATS VIEW ====== -->
+    <section id="statsView" class="view">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="stats-detail" id="statsDetail"></div>
+    </section>
+
+    <!-- ====== ACHIEVEMENTS VIEW ====== -->
+    <section id="achievementsView" class="view">
+      <div class="achievements-header">
+        <h2>🏆 Achievements</h2>
+        <p class="achievements-sub" id="achievementsSub"></p>
+      </div>
+      <div class="achievements-grid" id="achievementsGrid"></div>
+    </section>
+
+    <!-- ====== SETTINGS VIEW ====== -->
+    <section id="settingsView" class="view">
+      <div class="settings-panel">
+        <h2 class="settings-panel__title">⚙️ Settings</h2>
+
+        <div class="settings-section">
+          <h3 class="settings-section__title">🎨 Color Theme</h3>
+          <div class="theme-grid" id="themeGrid"></div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section__title">🌓 Appearance</h3>
+          <div class="settings-row">
+            <span>Dark Mode</span>
+            <label class="toggle">
+              <input type="checkbox" id="darkModeToggle" />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section__title">🔊 Sound Effects</h3>
+          <div class="settings-row">
+            <span>Completion Sound</span>
+            <label class="toggle">
+              <input type="checkbox" id="soundToggle" checked />
+              <span class="toggle__slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section__title">📦 Data Management</h3>
+          <div class="settings-row">
+            <span>Export all data as JSON</span>
+            <button class="btn btn--small btn--primary" onclick="exportData()">Export</button>
+          </div>
+          <div class="settings-row">
+            <span>Import data from JSON file</span>
+            <button class="btn btn--small btn--ghost" onclick="document.getElementById('importFile').click()">Import</button>
+            <input type="file" id="importFile" accept=".json" style="display:none" />
+          </div>
+          <div class="settings-row settings-row--danger">
+            <span>Reset all data</span>
+            <button class="btn btn--small btn--danger" onclick="promptResetAll()">Reset</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section__title">⌨️ Keyboard Shortcuts</h3>
+          <div class="shortcuts-list">
+            <div class="shortcut"><kbd>N</kbd> <span>New habit</span></div>
+            <div class="shortcut"><kbd>T</kbd> <span>Go to today</span></div>
+            <div class="shortcut"><kbd>D</kbd> <span>Toggle dark mode</span></div>
+            <div class="shortcut"><kbd>←</kbd> <span>Previous week</span></div>
+            <div class="shortcut"><kbd>→</kbd> <span>Next week</span></div>
+            <div class="shortcut"><kbd>1-4</kbd> <span>Switch tabs</span></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-section__title">📋 Quick Add from Templates</h3>
+          <div class="template-grid" id="settingsTemplates"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ───── Add / Edit Habit Dialog ───── -->
+  <dialog id="habitDialog" class="dialog">
+    <form id="habitForm" class="dialog__form" method="dialog">
+      <h2 class="dialog__title" id="dialogTitle">New Habit</h2>
+
+      <label class="field">
+        <span class="field__label">Habit Name</span>
+        <input type="text" id="habitName" class="field__input" placeholder="e.g. Read 30 minutes" required maxlength="60" autocomplete="off" />
+      </label>
+
+      <div class="field-row">
+        <label class="field field--half">
+          <span class="field__label">Icon / Emoji</span>
+          <input type="text" id="habitIcon" class="field__input field__input--small" placeholder="📖" maxlength="4" />
+        </label>
+        <label class="field field--half">
+          <span class="field__label">Priority</span>
+          <select id="habitPriority" class="field__input">
+            <option value="low">🟢 Low</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="high">🔴 High</option>
+          </select>
+        </label>
+      </div>
+
+      <fieldset class="field">
+        <legend class="field__label">Category</legend>
+        <div class="chip-group" id="categoryChips">
+          <label class="chip"><input type="radio" name="category" value="health" checked /><span>💪 Health</span></label>
+          <label class="chip"><input type="radio" name="category" value="mind" /><span>🧠 Mind</span></label>
+          <label class="chip"><input type="radio" name="category" value="productivity" /><span>⚡ Productivity</span></label>
+          <label class="chip"><input type="radio" name="category" value="social" /><span>🤝 Social</span></label>
+          <label class="chip"><input type="radio" name="category" value="creative" /><span>🎨 Creative</span></label>
+          <label class="chip"><input type="radio" name="category" value="other" /><span>📌 Other</span></label>
+        </div>
+      </fieldset>
+
+      <label class="field">
+        <span class="field__label">Color</span>
+        <div class="color-picker" id="colorPicker">
+          <label class="color-swatch" style="--swatch:#6366f1"><input type="radio" name="color" value="#6366f1" checked /><span></span></label>
+          <label class="color-swatch" style="--swatch:#f43f5e"><input type="radio" name="color" value="#f43f5e" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#10b981"><input type="radio" name="color" value="#10b981" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#f59e0b"><input type="radio" name="color" value="#f59e0b" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#3b82f6"><input type="radio" name="color" value="#3b82f6" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#ec4899"><input type="radio" name="color" value="#ec4899" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#8b5cf6"><input type="radio" name="color" value="#8b5cf6" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#14b8a6"><input type="radio" name="color" value="#14b8a6" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#ef4444"><input type="radio" name="color" value="#ef4444" /><span></span></label>
+          <label class="color-swatch" style="--swatch:#84cc16"><input type="radio" name="color" value="#84cc16" /><span></span></label>
+        </div>
+      </label>
+
+      <fieldset class="field">
+        <legend class="field__label">Repeat On</legend>
+        <div class="chip-group" id="dayChips">
+          <label class="chip chip--sm"><input type="checkbox" name="days" value="0" checked /><span>Sun</span></label>
+          <label class="chip chip--sm"><input type="checkbox" name="days" value="1" checked /><span>Mon</span></label>
+          <label class="chip chip--sm"><input type="checkbox" name="days" value="2" checked /><span>Tue</span></label>
+          <label class="chip chip--sm"><input type="checkbox" name="days" value="3" checked /><span>Wed</span></label>
+          <label class="chip chip--sm"><input type="checkbox" name="days" value="4" checked /><span>Thu</span></label>
+          <label class="chip chip--sm"><input type="checkbox" name="days" value="5" checked /><span>Fri</span></label>
+          <label class="chip chip--sm"><input type="checkbox" name="days" value="6" checked /><span>Sat</span></label>
+        </div>
+      </fieldset>
+
+      <label class="field">
+        <span class="field__label">Note (optional)</span>
+        <textarea id="habitNote" class="field__input field__textarea" placeholder="Why is this habit important to you?" rows="2" maxlength="200"></textarea>
+      </label>
+
+      <div class="dialog__actions">
+        <button type="button" id="dialogCancel" class="btn btn--ghost">Cancel</button>
+        <button type="button" id="dialogArchive" class="btn btn--warning" style="display:none">Archive</button>
+        <button type="button" id="dialogDelete" class="btn btn--danger" style="display:none">Delete</button>
+        <button type="submit" class="btn btn--primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ───── Confirm Dialog ───── -->
+  <dialog id="confirmDialog" class="dialog dialog--confirm">
+    <div class="dialog__form">
+      <h2 class="dialog__title" id="confirmTitle">Confirm</h2>
+      <p class="dialog__text" id="confirmText"></p>
+      <div class="dialog__actions">
+        <button id="confirmCancel" class="btn btn--ghost">Cancel</button>
+        <button id="confirmOK" class="btn btn--danger">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ───── Achievement Unlock Popup ───── -->
+  <div id="achievementPopup" class="achievement-popup" style="display:none">
+    <div class="achievement-popup__card">
+      <span class="achievement-popup__icon" id="achievementPopupIcon"></span>
+      <div>
+        <div class="achievement-popup__title">Achievement Unlocked!</div>
+        <div class="achievement-popup__name" id="achievementPopupName"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Toast Container ───── -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
